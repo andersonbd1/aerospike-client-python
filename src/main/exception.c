@@ -26,9 +26,18 @@
 #include "exception_types.h"
 static PyObject *module;
 
-PyObject * AerospikeException_New(void)
-{
-	module = Py_InitModule3("aerospike.exception", NULL, "Exception objects");
+PyObject * AerospikeException_New(void) {
+	static struct PyModuleDef moduledef = { PyModuleDef_HEAD_INIT,
+			"aerospike.exception", /* m_name */
+			"Exception objects", /* m_doc */
+			-1, /* m_size */
+			NULL, /* m_methods */
+			NULL, /* m_reload */
+			NULL, /* m_traverse */
+			NULL, /* m_clear */
+			NULL, /* m_free */
+	};
+	module = PyModule_Create(&moduledef);
 
 	struct exceptions exceptions_array;
 

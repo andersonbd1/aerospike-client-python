@@ -450,11 +450,12 @@ as_status pyobject_to_record(AerospikeClient * self, as_error * err, PyObject * 
 
 		while (PyDict_Next(py_rec, &pos, &key, &value)) {
 
-			if ( PyUnicode_Check(key) ) {
+			if ( PyStr_Check(key) ) {
+				name = PyStr_AsString(key);
+			}
+			else if ( PyUnicode_Check(key) ) {
 				py_ukey = PyUnicode_AsUTF8String(key);
 				name = PyStr_AsString(py_ukey);
-			} else if ( PyStr_Check(key) ) {
-				name = PyStr_AsString(key);
 			}
 			else {
 				return as_error_update(err, AEROSPIKE_ERR_CLIENT, "A bin name must be a string or unicode string.");
@@ -483,15 +484,15 @@ as_status pyobject_to_record(AerospikeClient * self, as_error * err, PyObject * 
                 }
 				ret_val = as_record_set_int64(rec, name, val);
 			}
+			else if ( PyStr_Check(value) ) {
+							char * val = PyStr_AsString(value);
+							ret_val = as_record_set_strp(rec, name, val, false);
+			}
 			else if ( PyUnicode_Check(value) ) {
 				PyObject * py_ustr = PyUnicode_AsUTF8String(value);
 				char * val = PyStr_AsString(py_ustr);
 				ret_val = as_record_set_strp(rec, name, strdup(val), true);
 				Py_DECREF(py_ustr);
-			}
-			else if ( PyStr_Check(value) ) {
-				char * val = PyStr_AsString(value);
-				ret_val = as_record_set_strp(rec, name, val, false);
             } else if ( PyByteArray_Check(value) ) {
 				as_bytes *bytes;
 				GET_BYTES_POOL(bytes, static_pool, err);
@@ -716,7 +717,14 @@ as_status pyobject_to_key(as_error * err, PyObject * py_keytuple, as_key * key)
 	}
 
 	if ( py_key && py_key != Py_None ) {
-		if ( PyUnicode_Check(py_key) ) {
+		 if ( PyStr_Check(py_key) ) {
+					char * k = PyStr_AsString(py_key);
+					// free flag is set to false, as char *k is an user memory
+					// when as_key_destroy is called, it will try to free this memory
+					// which is invalid.
+					as_key_init_strp(key, ns, set, k, false);
+		}
+		else if ( PyUnicode_Check(py_key) ) {
 			PyObject * py_ustr = PyUnicode_AsUTF8String(py_key);
 			char * k = PyStr_AsString(py_ustr);
 			// free flag has to be true. Because, we are creating a new memory
@@ -724,13 +732,6 @@ as_status pyobject_to_key(as_error * err, PyObject * py_keytuple, as_key * key)
 			// This memory is destroyed when we call as_key_destroy()
 			as_key_init_strp(key, ns, set, strdup(k), true);
 			Py_DECREF(py_ustr);
-		}
-		else if ( PyStr_Check(py_key) ) {
-			char * k = PyStr_AsString(py_key);
-			// free flag is set to false, as char *k is an user memory
-			// when as_key_destroy is called, it will try to free this memory
-			// which is invalid.
-			as_key_init_strp(key, ns, set, k, false);
 		}
 		else if ( PyInt_Check(py_key) ) {
 			int64_t k = (int64_t) PyInt_AsLong(py_key);

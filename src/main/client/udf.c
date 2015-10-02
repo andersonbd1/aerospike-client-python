@@ -88,11 +88,12 @@ PyObject * AerospikeClient_UDF_Put(AerospikeClient * self, PyObject *args, PyObj
 
 	// Convert PyObject into a filename string
 	char *filename = NULL;
-	if (PyUnicode_Check(py_filename)) {
+	if (PyStr_Check(py_filename)) {
+		filename = PyStr_AsString(py_filename);
+	}
+	else if (PyUnicode_Check(py_filename)) {
 		py_ustr = PyUnicode_AsUTF8String(py_filename);
 		filename = PyStr_AsString(py_ustr);
-	} else if (PyStr_Check(py_filename)) {
-		filename = PyStr_AsString(py_filename);
 	} else {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Filename should be a string");
 		goto CLEANUP;

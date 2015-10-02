@@ -458,7 +458,7 @@ static void AerospikeClient_Type_Dealloc(PyObject * self)
  ******************************************************************************/
 
 static PyTypeObject AerospikeClient_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 
 	.tp_name			= "aerospike.Client",
 	.tp_basicsize		= sizeof(AerospikeClient),

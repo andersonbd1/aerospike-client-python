@@ -115,11 +115,12 @@ static bool AerospikeClient_Info_each(as_error * err, const as_node * node, cons
 					if ( PyTuple_Check(py_host) && PyTuple_Size(py_host) == 2 ) {
 						PyObject * py_addr = PyTuple_GetItem(py_host,0);
 						PyObject * py_port = PyTuple_GetItem(py_host,1);
-						if (PyUnicode_Check(py_addr)) {
+						if ( PyStr_Check(py_addr) ) {
+							host_addr = PyStr_AsString(py_addr);
+						}
+						else if (PyUnicode_Check(py_addr)) {
 							py_ustr = PyUnicode_AsUTF8String(py_addr);
 							host_addr = PyStr_AsString(py_ustr);
-						} else if ( PyStr_Check(py_addr) ) {
-							host_addr = PyStr_AsString(py_addr);
 						} else {
 							as_error_update(&udata_ptr->error, AEROSPIKE_ERR_PARAM, "Host address is of type incorrect");
 							if (py_res) {
