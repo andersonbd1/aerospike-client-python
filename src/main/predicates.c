@@ -39,7 +39,7 @@ static PyObject * AerospikePredicates_Equals(PyObject * self, PyObject * args)
 	if ( PyInt_Check(py_val) || PyLong_Check(py_val) ) {
 		return Py_BuildValue("iiOO", AS_PREDICATE_EQUAL, AS_INDEX_NUMERIC, py_bin, py_val);
 	}
-	else if ( PyString_Check(py_val) || PyUnicode_Check(py_val) ) {
+	else if ( PyStr_Check(py_val) || PyUnicode_Check(py_val) ) {
 		return Py_BuildValue("iiOO", AS_PREDICATE_EQUAL, AS_INDEX_STRING, py_bin, py_val);
 	}
 
@@ -71,7 +71,7 @@ static PyObject * AerospikePredicates_Contains(PyObject * self, PyObject * args)
 	if (PyInt_Check(py_val) || PyLong_Check(py_val)) {
 		return Py_BuildValue("iiOOOi", AS_PREDICATE_EQUAL, AS_INDEX_NUMERIC, py_bin, py_val, Py_None, index_type);
 	}
-	else if (PyString_Check(py_val) || PyUnicode_Check(py_val)) {
+	else if (PyStr_Check(py_val) || PyUnicode_Check(py_val)) {
 		return Py_BuildValue("iiOOOi", AS_PREDICATE_EQUAL, AS_INDEX_STRING, py_bin, py_val, Py_None, index_type);
 	}
 

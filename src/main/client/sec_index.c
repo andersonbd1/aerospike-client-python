@@ -88,19 +88,19 @@ PyObject * AerospikeClient_Index_Integer_Create(AerospikeClient * self, PyObject
 	}
 
 	// Convert python object into namespace string
-	if( !PyString_Check(py_ns) ) {
+	if( !PyStr_Check(py_ns) ) {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Namespace should be a string");
 		goto CLEANUP;
 	}
-	char *namespace = PyString_AsString(py_ns);
+	char *namespace = PyStr_AsString(py_ns);
 
 	// Convert python object into set string
 	char *set_ptr = NULL;
 	if (PyUnicode_Check(py_set)) {
 		py_ustr_set = PyUnicode_AsUTF8String(py_set);
-		set_ptr = PyString_AsString(py_ustr_set);
-	} else if ( PyString_Check(py_set) ) {
-		set_ptr = PyString_AsString(py_set);
+		set_ptr = PyStr_AsString(py_ustr_set);
+	} else if ( PyStr_Check(py_set) ) {
+		set_ptr = PyStr_AsString(py_set);
 	} else if(py_set != Py_None){
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Set should be string, unicode or None");
 		goto CLEANUP;
@@ -110,9 +110,9 @@ PyObject * AerospikeClient_Index_Integer_Create(AerospikeClient * self, PyObject
 	char *bin_ptr = NULL;
 	if (PyUnicode_Check(py_bin)) {
 		py_ustr_bin = PyUnicode_AsUTF8String(py_bin);
-		bin_ptr = PyString_AsString(py_ustr_bin);
-	} else if ( PyString_Check(py_bin) ) {
-		bin_ptr = PyString_AsString(py_bin);
+		bin_ptr = PyStr_AsString(py_ustr_bin);
+	} else if ( PyStr_Check(py_bin) ) {
+		bin_ptr = PyStr_AsString(py_bin);
 	} else {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Bin should be a string");
 		goto CLEANUP;
@@ -122,9 +122,9 @@ PyObject * AerospikeClient_Index_Integer_Create(AerospikeClient * self, PyObject
 	char *name = NULL;
 	if (PyUnicode_Check(py_name)) {
 		py_ustr_name = PyUnicode_AsUTF8String(py_name);
-		name = PyString_AsString(py_ustr_name);
-	} else if ( PyString_Check(py_name) ) {
-		name = PyString_AsString(py_name);
+		name = PyStr_AsString(py_ustr_name);
+	} else if ( PyStr_Check(py_name) ) {
+		name = PyStr_AsString(py_name);
 	} else {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Index name should be string or unicode");
 		goto CLEANUP;
@@ -224,19 +224,19 @@ PyObject * AerospikeClient_Index_String_Create(AerospikeClient * self, PyObject 
 	}
 
 	// Convert python object into namespace string
-	if( !PyString_Check(py_ns) ) {
+	if( !PyStr_Check(py_ns) ) {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Namespace should be a string");
 		goto CLEANUP;
 	}
-	char *namespace = PyString_AsString(py_ns);
+	char *namespace = PyStr_AsString(py_ns);
 
 	// Convert python object into set string
 	char *set_ptr = NULL;
 	if (PyUnicode_Check(py_set)) {
 		py_ustr_set = PyUnicode_AsUTF8String(py_set);
-		set_ptr = PyString_AsString(py_ustr_set);
-	} else if ( PyString_Check(py_set) ) {
-		set_ptr = PyString_AsString(py_set);
+		set_ptr = PyStr_AsString(py_ustr_set);
+	} else if ( PyStr_Check(py_set) ) {
+		set_ptr = PyStr_AsString(py_set);
 	} else if(py_set != Py_None) {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Set should be string, unicode or None");
 		goto CLEANUP;
@@ -246,9 +246,9 @@ PyObject * AerospikeClient_Index_String_Create(AerospikeClient * self, PyObject 
 	char *bin_ptr = NULL;
 	if (PyUnicode_Check(py_bin)) {
 		py_ustr_bin = PyUnicode_AsUTF8String(py_bin);
-		bin_ptr = PyString_AsString(py_ustr_bin);
-	} else if ( PyString_Check(py_bin) ) {
-		bin_ptr = PyString_AsString(py_bin);
+		bin_ptr = PyStr_AsString(py_ustr_bin);
+	} else if ( PyStr_Check(py_bin) ) {
+		bin_ptr = PyStr_AsString(py_bin);
 	} else {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Bin should be a string");
 		goto CLEANUP;
@@ -258,9 +258,9 @@ PyObject * AerospikeClient_Index_String_Create(AerospikeClient * self, PyObject 
 	char *name = NULL;
 	if (PyUnicode_Check(py_name)) {
 		py_ustr_name = PyUnicode_AsUTF8String(py_name);
-		name = PyString_AsString(py_ustr_name);
-	} else if ( PyString_Check(py_name) ) {
-		name = PyString_AsString(py_name);
+		name = PyStr_AsString(py_ustr_name);
+	} else if ( PyStr_Check(py_name) ) {
+		name = PyStr_AsString(py_name);
 	} else {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Index name should be string or unicode");
 		goto CLEANUP;
@@ -355,19 +355,19 @@ PyObject * AerospikeClient_Index_Remove(AerospikeClient * self, PyObject *args, 
 	}
 
 	// Convert python object into namespace string
-	if( !PyString_Check(py_ns) ) {
+	if( !PyStr_Check(py_ns) ) {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Namespace should be a string");
 		goto CLEANUP;
 	}
-	char *namespace = PyString_AsString(py_ns);
+	char *namespace = PyStr_AsString(py_ns);
 
 	// Convert PyObject into the name of the index
 	char *name = NULL;
 	if (PyUnicode_Check(py_name)) {
 		py_ustr_name = PyUnicode_AsUTF8String(py_name);
-		name = PyString_AsString(py_ustr_name);
-	} else if ( PyString_Check(py_name) ) {
-		name = PyString_AsString(py_name);
+		name = PyStr_AsString(py_ustr_name);
+	} else if ( PyStr_Check(py_name) ) {
+		name = PyStr_AsString(py_name);
 	} else {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Index name should be string or unicode");
 		goto CLEANUP;
@@ -447,19 +447,19 @@ PyObject * AerospikeClient_Index_List_Create(AerospikeClient * self, PyObject *a
 	}
 
 	// Convert python object into namespace string
-	if( !PyString_Check(py_ns) ) {
+	if( !PyStr_Check(py_ns) ) {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Namespace should be a string");
 		goto CLEANUP;
 	}
-	char *namespace = PyString_AsString(py_ns);
+	char *namespace = PyStr_AsString(py_ns);
 
 	// Convert python object into set string
 	char *set_ptr = NULL;
 	if (PyUnicode_Check(py_set)) {
 		py_ustr_set = PyUnicode_AsUTF8String(py_set);
-		set_ptr = PyString_AsString(py_ustr_set);
-	} else if ( PyString_Check(py_set) ) {
-		set_ptr = PyString_AsString(py_set);
+		set_ptr = PyStr_AsString(py_ustr_set);
+	} else if ( PyStr_Check(py_set) ) {
+		set_ptr = PyStr_AsString(py_set);
 	} else if( py_set != Py_None) {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Set should be string, unicode or None");
 		goto CLEANUP;
@@ -469,9 +469,9 @@ PyObject * AerospikeClient_Index_List_Create(AerospikeClient * self, PyObject *a
 	char *bin_ptr = NULL;
 	if (PyUnicode_Check(py_bin)) {
 		py_ustr_bin = PyUnicode_AsUTF8String(py_bin);
-		bin_ptr = PyString_AsString(py_ustr_bin);
-	} else if ( PyString_Check(py_bin) ) {
-		bin_ptr = PyString_AsString(py_bin);
+		bin_ptr = PyStr_AsString(py_ustr_bin);
+	} else if ( PyStr_Check(py_bin) ) {
+		bin_ptr = PyStr_AsString(py_bin);
 	} else {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Bin should be a string");
 		goto CLEANUP;
@@ -481,9 +481,9 @@ PyObject * AerospikeClient_Index_List_Create(AerospikeClient * self, PyObject *a
 	char *name = NULL;
 	if (PyUnicode_Check(py_name)) {
 		py_ustr_name = PyUnicode_AsUTF8String(py_name);
-		name = PyString_AsString(py_ustr_name);
-	} else if ( PyString_Check(py_name) ) {
-		name = PyString_AsString(py_name);
+		name = PyStr_AsString(py_ustr_name);
+	} else if ( PyStr_Check(py_name) ) {
+		name = PyStr_AsString(py_name);
 	} else {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Index name should be string or unicode");
 		goto CLEANUP;
@@ -581,19 +581,19 @@ PyObject * AerospikeClient_Index_Map_Keys_Create(AerospikeClient * self, PyObjec
 	}
 
 	// Convert python object into namespace string
-	if( !PyString_Check(py_ns) ) {
+	if( !PyStr_Check(py_ns) ) {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Namespace should be a string");
 		goto CLEANUP;
 	}
-	char *namespace = PyString_AsString(py_ns);
+	char *namespace = PyStr_AsString(py_ns);
 
 	// Convert python object into set string
 	char *set_ptr = NULL;
 	if (PyUnicode_Check(py_set)) {
 		py_ustr_set = PyUnicode_AsUTF8String(py_set);
-		set_ptr = PyString_AsString(py_ustr_set);
-	} else if ( PyString_Check(py_set) ) {
-		set_ptr = PyString_AsString(py_set);
+		set_ptr = PyStr_AsString(py_ustr_set);
+	} else if ( PyStr_Check(py_set) ) {
+		set_ptr = PyStr_AsString(py_set);
 	} else if(py_set != Py_None) {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Set should be string, unicode or None");
 		goto CLEANUP;
@@ -603,9 +603,9 @@ PyObject * AerospikeClient_Index_Map_Keys_Create(AerospikeClient * self, PyObjec
 	char *bin_ptr = NULL;
 	if (PyUnicode_Check(py_bin)) {
 		py_ustr_bin = PyUnicode_AsUTF8String(py_bin);
-		bin_ptr = PyString_AsString(py_ustr_bin);
-	} else if ( PyString_Check(py_bin) ) {
-		bin_ptr = PyString_AsString(py_bin);
+		bin_ptr = PyStr_AsString(py_ustr_bin);
+	} else if ( PyStr_Check(py_bin) ) {
+		bin_ptr = PyStr_AsString(py_bin);
 	} else {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Bin should be a string");
 		goto CLEANUP;
@@ -615,9 +615,9 @@ PyObject * AerospikeClient_Index_Map_Keys_Create(AerospikeClient * self, PyObjec
 	char *name = NULL;
 	if (PyUnicode_Check(py_name)) {
 		py_ustr_name = PyUnicode_AsUTF8String(py_name);
-		name = PyString_AsString(py_ustr_name);
-	} else if ( PyString_Check(py_name) ) {
-		name = PyString_AsString(py_name);
+		name = PyStr_AsString(py_ustr_name);
+	} else if ( PyStr_Check(py_name) ) {
+		name = PyStr_AsString(py_name);
 	} else {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Index name should be string or unicode");
 		goto CLEANUP;
@@ -716,19 +716,19 @@ PyObject * AerospikeClient_Index_Map_Values_Create(AerospikeClient * self, PyObj
 	}
 
 	// Convert python object into namespace string
-	if( !PyString_Check(py_ns) ) {
+	if( !PyStr_Check(py_ns) ) {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Namespace should be a string");
 		goto CLEANUP;
 	}
-	char *namespace = PyString_AsString(py_ns);
+	char *namespace = PyStr_AsString(py_ns);
 
 	// Convert python object into set string
 	char *set_ptr = NULL;
 	if (PyUnicode_Check(py_set)) {
 		py_ustr_set = PyUnicode_AsUTF8String(py_set);
-		set_ptr = PyString_AsString(py_ustr_set);
-	} else if ( PyString_Check(py_set) ) {
-		set_ptr = PyString_AsString(py_set);
+		set_ptr = PyStr_AsString(py_ustr_set);
+	} else if ( PyStr_Check(py_set) ) {
+		set_ptr = PyStr_AsString(py_set);
 	} else if(py_set != Py_None){
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Set should be string, unicode or None");
 		goto CLEANUP;
@@ -738,9 +738,9 @@ PyObject * AerospikeClient_Index_Map_Values_Create(AerospikeClient * self, PyObj
 	char *bin_ptr = NULL;
 	if (PyUnicode_Check(py_bin)) {
 		py_ustr_bin = PyUnicode_AsUTF8String(py_bin);
-		bin_ptr = PyString_AsString(py_ustr_bin);
-	} else if ( PyString_Check(py_bin) ) {
-		bin_ptr = PyString_AsString(py_bin);
+		bin_ptr = PyStr_AsString(py_ustr_bin);
+	} else if ( PyStr_Check(py_bin) ) {
+		bin_ptr = PyStr_AsString(py_bin);
 	} else {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Bin should be a string");
 		goto CLEANUP;
@@ -750,9 +750,9 @@ PyObject * AerospikeClient_Index_Map_Values_Create(AerospikeClient * self, PyObj
 	char *name = NULL;
 	if (PyUnicode_Check(py_name)) {
 		py_ustr_name = PyUnicode_AsUTF8String(py_name);
-		name = PyString_AsString(py_ustr_name);
-	} else if ( PyString_Check(py_name) ) {
-		name = PyString_AsString(py_name);
+		name = PyStr_AsString(py_ustr_name);
+	} else if ( PyStr_Check(py_name) ) {
+		name = PyStr_AsString(py_name);
 	} else {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Index name should be string or unicode");
 		goto CLEANUP;

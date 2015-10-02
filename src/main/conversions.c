@@ -55,7 +55,7 @@ as_status as_udf_file_to_pyobject( as_error *err, as_udf_file * entry, PyObject 
 
 	*py_file = PyDict_New();
 
-	PyObject * py_name = PyString_FromString(entry->name);
+	PyObject * py_name = PyStr_FromString(entry->name);
 	PyDict_SetItemString(*py_file, "name", py_name);
 	Py_DECREF(py_name);
 
@@ -124,7 +124,7 @@ as_status as_user_array_to_pyobject( as_error *err, as_user **users, PyObject **
 	PyObject * py_users = PyDict_New();
 	for(i = 0; i < users_size; i++) {
 
-		PyObject * py_user       = PyString_FromString(users[i]->name);
+		PyObject * py_user       = PyStr_FromString(users[i]->name);
 		PyObject * py_roles;
 		strArray_to_pyobject(err, users[i]->roles, &py_roles, users[i]->roles_size);
 		if( err->code != AEROSPIKE_OK) {
@@ -147,7 +147,7 @@ void pyobject_to_as_privileges(as_error *err, PyObject *py_privileges, as_privil
 		PyObject * py_val = PyList_GetItem(py_privileges, i);
 		if(PyDict_Check(py_val)) {
 			privileges[i] = (as_privilege *)cf_malloc(sizeof(as_privilege));
-			PyObject *py_dict_key = PyString_FromString("code");
+			PyObject *py_dict_key = PyStr_FromString("code");
 			if(PyDict_Contains(py_val, py_dict_key)) {
 				PyObject *py_code = NULL;
 				py_code  = PyDict_GetItemString(py_val, "code");
@@ -157,18 +157,18 @@ void pyobject_to_as_privileges(as_error *err, PyObject *py_privileges, as_privil
 				break;
 			}
 			Py_DECREF(py_dict_key);
-			py_dict_key = PyString_FromString("ns");
+			py_dict_key = PyStr_FromString("ns");
 			if(PyDict_Contains(py_val, py_dict_key)) {
 				PyObject *py_ns  = PyDict_GetItemString(py_val, "ns");
-				strcpy(privileges[i]->ns, PyString_AsString(py_ns));
+				strcpy(privileges[i]->ns, PyStr_AsString(py_ns));
 			} else {
 				strcpy(privileges[i]->ns, "");
 			}
 			Py_DECREF(py_dict_key);
-			py_dict_key = PyString_FromString("set");
+			py_dict_key = PyStr_FromString("set");
 			if(PyDict_Contains(py_val, py_dict_key)) {
 				PyObject *py_set  = PyDict_GetItemString(py_val, "set");
-				strcpy(privileges[i]->set, PyString_AsString(py_set));
+				strcpy(privileges[i]->set, PyStr_AsString(py_set));
 			} else {
 				strcpy(privileges[i]->set, "");
 			}
@@ -185,7 +185,7 @@ as_status as_role_array_to_pyobject( as_error *err, as_role **roles, PyObject **
 	PyObject * py_roles = PyDict_New();
 	for(i = 0; i < roles_size; i++) {
 
-		PyObject * py_role = PyString_FromString(roles[i]->name);
+		PyObject * py_role = PyStr_FromString(roles[i]->name);
 		PyObject * py_privileges = PyList_New(0);
 
 		as_privilege_to_pyobject(err, roles[i]->privileges, &py_privileges, roles[i]->privileges_size);
@@ -246,8 +246,8 @@ as_status as_privilege_to_pyobject( as_error * err, as_privilege privileges[], P
 	PyObject * py_set = NULL;
 	PyObject * py_code = NULL;
 	for(int i=0; i<privilege_size; i++) {
-		py_ns = PyString_FromString(privileges[i].ns);
-		py_set = PyString_FromString(privileges[i].set);
+		py_ns = PyStr_FromString(privileges[i].ns);
+		py_set = PyStr_FromString(privileges[i].set);
 		py_code = PyInt_FromLong(privileges[i].code);
 
 		PyObject *py_privilege = PyDict_New();
@@ -279,8 +279,8 @@ as_status pyobject_to_strArray( as_error * err, PyObject * py_list,  char ** arr
 	char *s;
 	for ( int i = 0; i < size; i++ ) {
 		PyObject * py_val = PyList_GetItem(py_list, i);
-		if( PyString_Check(py_val) ) {
-			s = PyString_AsString(py_val);
+		if( PyStr_Check(py_val) ) {
+			s = PyStr_AsString(py_val);
 			strcpy(arr[i], s);
 		}
 	}
@@ -372,13 +372,13 @@ as_status pyobject_to_val(AerospikeClient * self, as_error * err, PyObject * py_
         }
 		*val = (as_val *) as_integer_new(l);
 	}
-	else if ( PyString_Check(py_obj) ) {
-		char * s = PyString_AsString(py_obj);
+	else if ( PyStr_Check(py_obj) ) {
+		char * s = PyStr_AsString(py_obj);
 		*val = (as_val *) as_string_new(s, false);
 	}
 	else if ( PyUnicode_Check(py_obj) ) {
 		PyObject * py_ustr = PyUnicode_AsUTF8String(py_obj);
-		char * str = PyString_AsString(py_ustr);
+		char * str = PyStr_AsString(py_ustr);
 		*val = (as_val *) as_string_new(strdup(str), true);
 		Py_DECREF(py_ustr);
 	}
@@ -452,9 +452,9 @@ as_status pyobject_to_record(AerospikeClient * self, as_error * err, PyObject * 
 
 			if ( PyUnicode_Check(key) ) {
 				py_ukey = PyUnicode_AsUTF8String(key);
-				name = PyString_AsString(py_ukey);
-			} else if ( PyString_Check(key) ) {
-				name = PyString_AsString(key);
+				name = PyStr_AsString(py_ukey);
+			} else if ( PyStr_Check(key) ) {
+				name = PyStr_AsString(key);
 			}
 			else {
 				return as_error_update(err, AEROSPIKE_ERR_CLIENT, "A bin name must be a string or unicode string.");
@@ -485,12 +485,12 @@ as_status pyobject_to_record(AerospikeClient * self, as_error * err, PyObject * 
 			}
 			else if ( PyUnicode_Check(value) ) {
 				PyObject * py_ustr = PyUnicode_AsUTF8String(value);
-				char * val = PyString_AsString(py_ustr);
+				char * val = PyStr_AsString(py_ustr);
 				ret_val = as_record_set_strp(rec, name, strdup(val), true);
 				Py_DECREF(py_ustr);
 			}
-			else if ( PyString_Check(value) ) {
-				char * val = PyString_AsString(value);
+			else if ( PyStr_Check(value) ) {
+				char * val = PyStr_AsString(value);
 				ret_val = as_record_set_strp(rec, name, val, false);
             } else if ( PyByteArray_Check(value) ) {
 				as_bytes *bytes;
@@ -604,12 +604,12 @@ as_status pyobject_to_astype_write(AerospikeClient * self, as_error * err, char 
 	else if ( PyLong_Check(py_value) ) {
 		int64_t l = (int64_t) PyLong_AsLongLong(py_value);
 		*val = (as_val *) as_integer_new(l);
-    } else if ( PyString_Check(py_value) ) {
-		char * s = PyString_AsString(py_value);
+    } else if ( PyStr_Check(py_value) ) {
+		char * s = PyStr_AsString(py_value);
 		*val = (as_val *) as_string_new(s, false);
 	} else if ( PyUnicode_Check(py_value) ) {
 		PyObject * py_ustr = PyUnicode_AsUTF8String(py_value);
-		char * str = PyString_AsString(py_ustr);
+		char * str = PyStr_AsString(py_ustr);
 		*val = (as_val *) as_string_new(strdup(str), true);
 		Py_DECREF(py_ustr);
 	} else if ( PyByteArray_Check(py_value) ) {
@@ -694,21 +694,21 @@ as_status pyobject_to_key(as_error * err, PyObject * py_keytuple, as_key * key)
 	if ( ! py_ns ) {
 		return as_error_update(err, AEROSPIKE_ERR_PARAM, "namespace is required");
 	}
-	else if ( ! PyString_Check(py_ns) ) {
+	else if ( ! PyStr_Check(py_ns) ) {
 		return as_error_update(err, AEROSPIKE_ERR_PARAM, "namespace must be a string");
 	}
 	else {
-		ns = PyString_AsString(py_ns);
+		ns = PyStr_AsString(py_ns);
 	}
 
 	PyObject * py_ustr = NULL;
 	if ( py_set && py_set != Py_None ) {
-		if ( PyString_Check(py_set) ) {
-			set = PyString_AsString(py_set);
+		if ( PyStr_Check(py_set) ) {
+			set = PyStr_AsString(py_set);
 		}
 		else if ( PyUnicode_Check(py_set) ) {
 			py_ustr = PyUnicode_AsUTF8String(py_set);
-			set = PyString_AsString(py_ustr);
+			set = PyStr_AsString(py_ustr);
 		}
 		else {
 			return as_error_update(err, AEROSPIKE_ERR_PARAM, "set must be a string");
@@ -718,15 +718,15 @@ as_status pyobject_to_key(as_error * err, PyObject * py_keytuple, as_key * key)
 	if ( py_key && py_key != Py_None ) {
 		if ( PyUnicode_Check(py_key) ) {
 			PyObject * py_ustr = PyUnicode_AsUTF8String(py_key);
-			char * k = PyString_AsString(py_ustr);
+			char * k = PyStr_AsString(py_ustr);
 			// free flag has to be true. Because, we are creating a new memory
 			// for a primary key string using strdup()
 			// This memory is destroyed when we call as_key_destroy()
 			as_key_init_strp(key, ns, set, strdup(k), true);
 			Py_DECREF(py_ustr);
 		}
-		else if ( PyString_Check(py_key) ) {
-			char * k = PyString_AsString(py_key);
+		else if ( PyStr_Check(py_key) ) {
+			char * k = PyStr_AsString(py_key);
 			// free flag is set to false, as char *k is an user memory
 			// when as_key_destroy is called, it will try to free this memory
 			// which is invalid.
@@ -807,7 +807,7 @@ as_status val_to_pyobject(as_error * err, const as_val * val, PyObject ** py_val
 				as_string * s = as_string_fromval(val);
 				char * str = as_string_get(s);
 				if ( str != NULL ) {
-					*py_val = PyString_FromString( str );
+					*py_val = PyStr_FromString( str );
 					if (py_val == NULL){
 						size_t sz = strlen(str);
 						*py_val = PyUnicode_DecodeUTF8(str, sz, NULL);
@@ -1034,11 +1034,11 @@ as_status key_to_pyobject(as_error * err, const as_key * key, PyObject ** obj)
 	PyObject * py_digest = NULL;
 
 	if ( key->ns && strlen(key->ns) > 0 ) {
-		py_namespace = PyString_FromString(key->ns);
+		py_namespace = PyStr_FromString(key->ns);
 	}
 
 	if ( key->set && strlen(key->set) > 0 ) {
-		py_set = PyString_FromString(key->set);
+		py_set = PyStr_FromString(key->set);
 	}
 
 	if ( key->valuep ) {
@@ -1052,7 +1052,7 @@ as_status key_to_pyobject(as_error * err, const as_key * key, PyObject ** obj)
 			}
 			case AS_STRING: {
 				as_string * sval = as_string_fromval(val);
-				py_key = PyString_FromString( as_string_get(sval) );
+				py_key = PyStr_FromString( as_string_get(sval) );
 				if (py_key == NULL){
 					py_key = PyUnicode_DecodeUTF8(as_string_get(sval), as_string_len(sval), NULL);
 				}
@@ -1191,7 +1191,7 @@ bool error_to_pyobject(const as_error * err, PyObject ** obj)
 {
 	PyObject * py_file = NULL;
 	if ( err->file ) {
-		py_file = PyString_FromString(err->file);
+		py_file = PyStr_FromString(err->file);
 	}
 	else {
 		Py_INCREF(Py_None);
@@ -1207,7 +1207,7 @@ bool error_to_pyobject(const as_error * err, PyObject ** obj)
 	}
 
 	PyObject * py_code = PyLong_FromLongLong(err->code);
-	PyObject * py_message = PyString_FromString(err->message);
+	PyObject * py_message = PyStr_FromString(err->message);
 
 	PyObject * py_err = PyTuple_New(4);
 	PyTuple_SetItem(py_err, PY_EXCEPTION_CODE, py_code);

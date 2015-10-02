@@ -111,9 +111,9 @@ PyObject * AerospikeClient_ScanApply_Invoke(
 	char *set_p = NULL;
 	if (PyUnicode_Check(py_set)) {
 		py_ustr1 = PyUnicode_AsUTF8String(py_set);
-		set_p = PyString_AsString(py_ustr1);
-	} else if (PyString_Check(py_set)) {
-		set_p = PyString_AsString(py_set);
+		set_p = PyStr_AsString(py_ustr1);
+	} else if (PyStr_Check(py_set)) {
+		set_p = PyStr_AsString(py_set);
 	} else if( Py_None != py_set ) {
 		// Scan whole namespace if set is 'None' else error
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Set name should be string");
@@ -143,9 +143,9 @@ PyObject * AerospikeClient_ScanApply_Invoke(
 	char *module_p = NULL;
 	if (PyUnicode_Check(py_module)) {
 		py_ustr2 = PyUnicode_AsUTF8String(py_module);
-		module_p = PyString_AsString(py_ustr2);
-	} else if (PyString_Check(py_module)) {
-		module_p = PyString_AsString(py_module);
+		module_p = PyStr_AsString(py_ustr2);
+	} else if (PyStr_Check(py_module)) {
+		module_p = PyStr_AsString(py_module);
 	} else {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Module name should be string");
 		goto CLEANUP;
@@ -154,9 +154,9 @@ PyObject * AerospikeClient_ScanApply_Invoke(
 	char *function_p = NULL;
 	if (PyUnicode_Check(py_function)) {
 		py_ustr3 = PyUnicode_AsUTF8String(py_function);
-		function_p = PyString_AsString(py_ustr3);
-	} else if (PyString_Check(py_function)) {
-		function_p = PyString_AsString(py_function);
+		function_p = PyStr_AsString(py_ustr3);
+	} else if (PyStr_Check(py_function)) {
+		function_p = PyStr_AsString(py_function);
 	} else {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Function name should be string");
 		goto CLEANUP;

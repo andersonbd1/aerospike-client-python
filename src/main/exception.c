@@ -351,10 +351,10 @@ PyObject* raise_exception(as_error *err) {
 			}
 			if(err->code == PyInt_AsLong(py_code)) {
 				PyObject *py_attr = NULL;
-				py_attr = PyString_FromString(err->message);
+				py_attr = PyStr_FromString(err->message);
 				PyObject_SetAttrString(py_value, "msg", py_attr);
 				Py_DECREF(py_attr);
-				py_attr = PyString_FromString(err->file);
+				py_attr = PyStr_FromString(err->file);
 				PyObject_SetAttrString(py_value, "file", py_attr);
 				Py_DECREF(py_attr);
 				py_attr = PyInt_FromLong(err->line);

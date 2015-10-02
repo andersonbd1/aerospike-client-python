@@ -96,19 +96,19 @@ PyObject * AerospikeClient_Admin_Create_User(AerospikeClient * self, PyObject *a
 	}
 
 	// Convert python objects to username and password strings
-	if ( !PyString_Check(py_user) ) {
+	if ( !PyStr_Check(py_user) ) {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Username should be a string");
 		goto CLEANUP;
 	}
 
-	user = PyString_AsString(py_user);
+	user = PyStr_AsString(py_user);
 
-	if( !PyString_Check(py_password) ) {
+	if( !PyStr_Check(py_password) ) {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Password should be a string");
 		goto CLEANUP;
 	}
 
-	password = PyString_AsString(py_password);
+	password = PyStr_AsString(py_password);
 
 	// Convert python object to policy_admin
 	pyobject_to_policy_admin( &err, py_policy, &admin_policy, &admin_policy_p,
@@ -198,12 +198,12 @@ PyObject * AerospikeClient_Admin_Drop_User( AerospikeClient *self, PyObject *arg
 	}
 
 	// Convert python object to username string
-	if ( !PyString_Check(py_user) ) {
+	if ( !PyStr_Check(py_user) ) {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Username should be a string");
 		goto CLEANUP;
 	}
 
-	user = PyString_AsString(py_user);
+	user = PyStr_AsString(py_user);
 
 	//Invoke operation
 	aerospike_drop_user(self->as, &err, admin_policy_p, user);
@@ -283,19 +283,19 @@ PyObject * AerospikeClient_Admin_Set_Password( AerospikeClient *self, PyObject *
 	}
 
 	// Convert python objects into username and password strings
-	if ( !PyString_Check(py_user) ) {
+	if ( !PyStr_Check(py_user) ) {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Username should be a string");
 		goto CLEANUP;
 	}
 
-	user = PyString_AsString(py_user);
+	user = PyStr_AsString(py_user);
 
-	if ( !PyString_Check(py_password) ) {
+	if ( !PyStr_Check(py_password) ) {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Password should be a string");
 		goto CLEANUP;
 	}
 
-	password = PyString_AsString(py_password);
+	password = PyStr_AsString(py_password);
 
 	// Invoke operation
 	aerospike_set_password( self->as, &err, admin_policy_p, user, password );
@@ -375,19 +375,19 @@ PyObject * AerospikeClient_Admin_Change_Password( AerospikeClient *self, PyObjec
 	}
 
 	// Convert python objects into username and password strings
-	if ( !PyString_Check(py_user) ) {
+	if ( !PyStr_Check(py_user) ) {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Username should be a string");
 		goto CLEANUP;
 	}
 
-	user = PyString_AsString(py_user);
+	user = PyStr_AsString(py_user);
 
-	if ( !PyString_Check(py_password) ) {
+	if ( !PyStr_Check(py_password) ) {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Password should be a string");
 		goto CLEANUP;
 	}
 
-	password = PyString_AsString(py_password);
+	password = PyStr_AsString(py_password);
 
 	// Invoke operation
 	aerospike_change_password( self->as, &err, admin_policy_p, user, password );
@@ -477,12 +477,12 @@ PyObject * AerospikeClient_Admin_Grant_Roles( AerospikeClient *self, PyObject *a
 	}
 
 	// Convert python object into username string
-	if ( !PyString_Check(py_user) ) {
+	if ( !PyStr_Check(py_user) ) {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Username should be a string");
 		goto CLEANUP;
 	}
 
-	user = PyString_AsString(py_user);
+	user = PyStr_AsString(py_user);
 
 	// Convert python object to policy_admin
 	pyobject_to_policy_admin(&err, py_policy, &admin_policy, &admin_policy_p,
@@ -587,12 +587,12 @@ PyObject * AerospikeClient_Admin_Revoke_Roles( AerospikeClient *self, PyObject *
 	}
 
 	// Convert python object to username string
-	if ( !PyString_Check(py_user) ) {
+	if ( !PyStr_Check(py_user) ) {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Username should be a string");
 		goto CLEANUP;
 	}
 
-	user = PyString_AsString(py_user);
+	user = PyStr_AsString(py_user);
 
 	// Convert python object to policy_admin
 	pyobject_to_policy_admin(&err, py_policy, &admin_policy, &admin_policy_p,
@@ -685,12 +685,12 @@ PyObject * AerospikeClient_Admin_Query_User( AerospikeClient * self, PyObject * 
 	}
 
 	// Convert python object to username string
-	if ( !PyString_Check(py_user_name) ) {
+	if ( !PyStr_Check(py_user_name) ) {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Username should be a string");
 		goto CLEANUP;
 	}
 
-	user_name = PyString_AsString(py_user_name);
+	user_name = PyStr_AsString(py_user_name);
 
 	// Invoke operation
 	aerospike_query_user(self->as, &err, admin_policy_p, user_name, &user);
@@ -875,8 +875,8 @@ PyObject * AerospikeClient_Admin_Create_Role(AerospikeClient * self, PyObject *a
 	}
 
 	char *role = NULL;
-	if(PyString_Check(py_role)) {
-		role = PyString_AsString(py_role);
+	if(PyStr_Check(py_role)) {
+		role = PyStr_AsString(py_role);
 	} else {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Role name should be a string");
 		goto CLEANUP;
@@ -956,8 +956,8 @@ PyObject * AerospikeClient_Admin_Drop_Role(AerospikeClient * self, PyObject *arg
 	}
 
 	char *role = NULL;
-	if(PyString_Check(py_role)) {
-		role = PyString_AsString(py_role);
+	if(PyStr_Check(py_role)) {
+		role = PyStr_AsString(py_role);
 	} else {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Role name should be a string");
 		goto CLEANUP;
@@ -1047,8 +1047,8 @@ PyObject * AerospikeClient_Admin_Grant_Privileges(AerospikeClient * self, PyObje
 	}
 
 	char *role = NULL;
-	if(PyString_Check(py_role)) {
-		role = PyString_AsString(py_role);
+	if(PyStr_Check(py_role)) {
+		role = PyStr_AsString(py_role);
 	} else {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Role name should be a string");
 		goto CLEANUP;
@@ -1145,8 +1145,8 @@ PyObject * AerospikeClient_Admin_Revoke_Privileges(AerospikeClient * self, PyObj
 	}
 
 	char *role = NULL;
-	if(PyString_Check(py_role)) {
-		role = PyString_AsString(py_role);
+	if(PyStr_Check(py_role)) {
+		role = PyStr_AsString(py_role);
 	} else {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Role name should be a string");
 		goto CLEANUP;
@@ -1230,8 +1230,8 @@ PyObject * AerospikeClient_Admin_Query_Role(AerospikeClient * self, PyObject *ar
 	}
 
 	char *role = NULL;
-	if(PyString_Check(py_role)) {
-		role = PyString_AsString(py_role);
+	if(PyStr_Check(py_role)) {
+		role = PyStr_AsString(py_role);
 	} else {
 		as_error_update(&err, AEROSPIKE_ERR_PARAM, "Role name should be a string");
 		goto CLEANUP;

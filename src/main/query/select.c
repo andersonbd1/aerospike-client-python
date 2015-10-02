@@ -54,11 +54,11 @@ AerospikeQuery * AerospikeQuery_Select(AerospikeQuery * self, PyObject * args, P
 		PyObject * py_bin = PyTuple_GetItem(args, i);
 		if (PyUnicode_Check(py_bin)){
 			py_ubin = PyUnicode_AsUTF8String(py_bin);
-			bin = PyString_AsString(py_ubin);
+			bin = PyStr_AsString(py_ubin);
 		}
-		else if (PyString_Check(py_bin)) {
+		else if (PyStr_Check(py_bin)) {
 			// TRACE();
-			bin = PyString_AsString(py_bin);
+			bin = PyStr_AsString(py_bin);
 		} else {
 			// TRACE();
 			as_error_update(&err, AEROSPIKE_ERR_PARAM, "Bin name should be of type string");

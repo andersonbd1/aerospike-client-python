@@ -76,10 +76,10 @@ int check_type(AerospikeClient * self, PyObject * py_value, int op, as_error *er
 	if ((!PyInt_Check(py_value) && !PyLong_Check(py_value)) && (op == AS_OPERATOR_TOUCH)) {
 	    as_error_update(err, AEROSPIKE_ERR_PARAM, "Unsupported operand type(s) for touch : only int or long allowed");
 		return 1;
-	} else if ( (!PyInt_Check(py_value) && !PyLong_Check(py_value) && (!PyFloat_Check(py_value) || !aerospike_has_double(self->as)) && !PyString_Check(py_value)) && op == AS_OPERATOR_INCR){
+	} else if ( (!PyInt_Check(py_value) && !PyLong_Check(py_value) && (!PyFloat_Check(py_value) || !aerospike_has_double(self->as)) && !PyStr_Check(py_value)) && op == AS_OPERATOR_INCR){
 	    as_error_update(err, AEROSPIKE_ERR_PARAM, "Unsupported operand type(s) for +: only 'int' and 'str' allowed");
 		return 1;
-	} else if ((!PyString_Check(py_value) && !PyUnicode_Check(py_value)) && (op == AS_OPERATOR_APPEND || op == AS_OPERATOR_PREPEND)) {
+	} else if ((!PyStr_Check(py_value) && !PyUnicode_Check(py_value)) && (op == AS_OPERATOR_APPEND || op == AS_OPERATOR_PREPEND)) {
 	    as_error_update(err, AEROSPIKE_ERR_PARAM, "Cannot concatenate 'str' and 'non-str' objects");
 		return 1;
 	}
@@ -206,11 +206,11 @@ PyObject *  AerospikeClient_Operate_Invoke(
 			PyObject * py_value = NULL;
 			Py_ssize_t pos = 0;
 			while (PyDict_Next(py_val, &pos, &key_op, &value)) {
-				if ( ! PyString_Check(key_op) ) {
+				if ( ! PyStr_Check(key_op) ) {
 					as_error_update(err, AEROSPIKE_ERR_CLIENT, "A operation key must be a string.");
 					goto CLEANUP;
 				} else {
-					char * name = PyString_AsString(key_op);
+					char * name = PyStr_AsString(key_op);
 					if(!strcmp(name,"op") && (PyInt_Check(value) || PyLong_Check(value))) {
 						operation = PyInt_AsLong(value);
 					} else if (!strcmp(name, "bin")) {
@@ -227,9 +227,9 @@ PyObject *  AerospikeClient_Operate_Invoke(
 			if (py_bin) {
 				if (PyUnicode_Check(py_bin)) {
 					py_ustr = PyUnicode_AsUTF8String(py_bin);
-					bin = PyString_AsString(py_ustr);
-				} else if (PyString_Check(py_bin)) {
-					bin = PyString_AsString(py_bin);
+					bin = PyStr_AsString(py_ustr);
+				} else if (PyStr_Check(py_bin)) {
+					bin = PyStr_AsString(py_bin);
 				} else {
 					as_error_update(err, AEROSPIKE_ERR_PARAM, "Bin name should be of type string");
 					goto CLEANUP;
@@ -241,8 +241,8 @@ PyObject *  AerospikeClient_Operate_Invoke(
 			if (py_value) {
 				if (check_type(self, py_value, operation, err)) {
                     goto CLEANUP;
-				} else if (PyString_Check(py_value) && (operation == AS_OPERATOR_INCR)) {
-                    char * incr_string = PyString_AsString(py_value);
+				} else if (PyStr_Check(py_value) && (operation == AS_OPERATOR_INCR)) {
+                    char * incr_string = PyStr_AsString(py_value);
                     int incr_value = 0, sign = 1;
 
                     if (strlen(incr_string) > 15) {
@@ -277,18 +277,18 @@ PyObject *  AerospikeClient_Operate_Invoke(
 				case AS_OPERATOR_APPEND:
 					if (PyUnicode_Check(py_value)) {
 						py_ustr1 = PyUnicode_AsUTF8String(py_value);
-						val = PyString_AsString(py_ustr1);
+						val = PyStr_AsString(py_ustr1);
 					} else {
-						val = PyString_AsString(py_value);
+						val = PyStr_AsString(py_value);
 					}
 					as_operations_add_append_str(&ops, bin, val);
 					break;
 				case AS_OPERATOR_PREPEND:
 					if (PyUnicode_Check(py_value)) {
 						py_ustr1 = PyUnicode_AsUTF8String(py_value);
-						val = PyString_AsString(py_ustr1);
+						val = PyStr_AsString(py_ustr1);
 					} else {
-						val = PyString_AsString(py_value);
+						val = PyStr_AsString(py_value);
 					}
 					as_operations_add_prepend_str(&ops, bin, val);
 					break;
