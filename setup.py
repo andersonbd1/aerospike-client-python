@@ -152,7 +152,7 @@ else:
 
         print('info: Executing','./scripts/aerospike-client-c.sh', file=sys.stdout)
 
-        os.chmod('./scripts/aerospike-client-c.sh',0755)
+        os.chmod('./scripts/aerospike-client-c.sh', 0o755)
 
         if PREFIX:
             os.putenv('PREFIX', PREFIX)
