@@ -252,7 +252,7 @@ void execute_user_callback(user_serializer_callback *user_callback_info,
 
 		if (serialize_flag) {
 			char * py_val = PyStr_AsString(py_return);
-			len = PyStr_Size(py_return);
+			len = PyBytes_Size(py_return);
 			set_as_bytes(bytes, (uint8_t *) py_val,
 					len, AS_BYTES_BLOB, error_p);
 			Py_DECREF(py_return);

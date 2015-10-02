@@ -450,7 +450,7 @@ static int AerospikeClient_Type_Init(AerospikeClient * self, PyObject * args, Py
 
 static void AerospikeClient_Type_Dealloc(PyObject * self)
 {
-	self->ob_type->tp_free((PyObject *) self);
+	Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
 /*******************************************************************************
@@ -460,7 +460,6 @@ static void AerospikeClient_Type_Dealloc(PyObject * self)
 static PyTypeObject AerospikeClient_Type = {
 	PyObject_HEAD_INIT(NULL)
 
-		.ob_size			= 0,
 	.tp_name			= "aerospike.Client",
 	.tp_basicsize		= sizeof(AerospikeClient),
 	.tp_itemsize		= 0,
@@ -468,7 +467,6 @@ static PyTypeObject AerospikeClient_Type = {
 	.tp_print			= 0,
 	.tp_getattr			= 0,
 	.tp_setattr			= 0,
-	.tp_compare			= 0,
 	.tp_repr			= 0,
 	.tp_as_number		= 0,
 	.tp_as_sequence		= 0,
