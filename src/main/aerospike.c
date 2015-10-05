@@ -72,18 +72,26 @@ PyMODINIT_FUNC PyInit_aerospike(void) {
 	PyEval_InitThreads();
 	int i = 0;
 
-	static struct PyModuleDef moduledef = { PyModuleDef_HEAD_INIT,
-			"aerospike", /* m_name */
-			"Aerospike Python Client", /* m_doc */
-			-1, /* m_size */
-			Aerospike_Methods, /* m_methods */
-			NULL, /* m_reload */
-			NULL, /* m_traverse */
-			NULL, /* m_clear */
-			NULL, /* m_free */
-	};
 	// aerospike Module
-	PyObject * aerospike = PyModule_Create(&moduledef);
+	PyObject * aerospike;
+
+	if (IS_PY3) {
+		static struct PyModuleDef moduledef = { PyModuleDef_HEAD_INIT,
+				"aerospike", /* m_name */
+				"Aerospike Python Client", /* m_doc */
+				-1, /* m_size */
+				Aerospike_Methods, /* m_methods */
+				NULL, /* m_reload */
+				NULL, /* m_traverse */
+				NULL, /* m_clear */
+				NULL, /* m_free */
+		};
+		aerospike = PyModule_Create(&moduledef);
+	}
+	else {
+		aerospike = Py_InitModule3("aerospike", Aerospike_Methods,
+						"Aerospike Python Client");
+	}
 
 	declare_policy_constants(aerospike);
 
