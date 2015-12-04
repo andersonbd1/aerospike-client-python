@@ -29,6 +29,11 @@
 #include "exceptions.h"
 #include "key.h"
 #include "policy.h"
+
+typedef struct {
+	PyObject * py_recs;
+    AerospikeClient * client;
+} LocalData;
 /**
  *******************************************************************************************************
  * This callback will be called with the results with aerospike_batch_get().
@@ -43,12 +48,23 @@
  */
 static bool batch_get_cb(const as_batch_read* results, uint32_t n, void* udata)
 {
-    // Typecast udata back to PyObject
+	// Typecast udata back to PyObject
+    LocalData *data = (LocalData *) udata;
+	PyObject * py_recs = data->py_recs;
+
+	// Initialize error object
+	as_error err;
+	as_error_init(&err);
+
+	// Lock Python State
+	PyGILState_STATE gstate;
+	gstate = PyGILState_Ensure();
+    /*// Typecast udata back to PyObject
     PyObject * py_recs = (PyObject *) udata;
 
     // Initialize error object
     as_error err;
-    as_error_init(&err);
+    as_error_init(&err);*/
 
     // Loop over results array
     for ( uint32_t i =0; i < n; i++ ){
@@ -92,7 +108,7 @@ static bool batch_get_cb(const as_batch_read* results, uint32_t n, void* udata)
         // Check record status
         if ( results[i].result == AEROSPIKE_OK ){
 
-            record_to_pyobject(&err, &results[i].record, results[i].key, &rec);
+            record_to_pyobject(data->client, &err, &results[i].record, results[i].key, &rec);
             PyObject *py_obj = PyTuple_GetItem(rec, 1);
             Py_INCREF(py_obj);
             PyTuple_SetItem(py_rec, 1, py_obj);
@@ -116,6 +132,8 @@ static bool batch_get_cb(const as_batch_read* results, uint32_t n, void* udata)
             }
         }
     }
+	// Release Python State
+	PyGILState_Release(gstate);
     return true;
 }
 
@@ -128,7 +146,7 @@ static bool batch_get_cb(const as_batch_read* results, uint32_t n, void* udata)
  *
  *******************************************************************************************************
  */
-static void batch_get_recs(as_error *err, as_batch_read_records* records, PyObject **py_recs)
+static void batch_get_recs(AerospikeClient *self, as_error *err, as_batch_read_records* records, PyObject **py_recs)
 {
     as_vector* list = &records->list;
     for (uint32_t i = 0; i < list->size; i++) {
@@ -172,7 +190,7 @@ static void batch_get_recs(as_error *err, as_batch_read_records* records, PyObje
         PyTuple_SetItem(py_rec, 0, p_key);
 
 		if ( batch->result == AEROSPIKE_OK ){
-            record_to_pyobject(err, &batch->record, &batch->key, &rec);
+            record_to_pyobject(self, err, &batch->record, &batch->key, &rec);
             PyObject *py_obj = PyTuple_GetItem(rec, 1);
             Py_INCREF(py_obj);
             PyTuple_SetItem(py_rec, 1, py_obj);
@@ -208,8 +226,9 @@ static PyObject * batch_get_aerospike_batch_read(as_error *err, AerospikeClient 
 
     as_batch_read_records records;
 
+	// Initialisation flags
+	bool batch_initialised = false;
     as_batch_read_record* record = NULL;
-    bool batch_initialised = false;
 
 	// Convert python keys list to as_key ** and add it to as_batch.keys
 	// keys can be specified in PyList or PyTuple
@@ -273,11 +292,14 @@ static PyObject * batch_get_aerospike_batch_read(as_error *err, AerospikeClient 
 	}
 
 	// Invoke C-client API
-    if (aerospike_batch_read(self->as, err, batch_policy_p, &records) != AEROSPIKE_OK) 
+    Py_BEGIN_ALLOW_THREADS
+    aerospike_batch_read(self->as, err, batch_policy_p, &records);
+    Py_END_ALLOW_THREADS
+    if (err->code != AEROSPIKE_OK)
     {
 		goto CLEANUP;
     }
-    batch_get_recs(err, &records, &py_recs);
+    batch_get_recs(self, err, &records, &py_recs);
     
 CLEANUP:
     if (batch_initialised == true){
@@ -305,6 +327,8 @@ static PyObject * batch_get_aerospike_batch_get(as_error *err, AerospikeClient *
 {
 	PyObject * py_recs = NULL;
 
+    LocalData data;
+    data.client = self;
     as_batch batch;
     bool batch_initialised = false;
 
@@ -314,6 +338,7 @@ static PyObject * batch_get_aerospike_batch_get(as_error *err, AerospikeClient *
 		Py_ssize_t size = PyList_Size(py_keys);
 
         py_recs = PyList_New(size);
+        data.py_recs = py_recs;
         as_batch_init(&batch, size);
 
         // Batch object initialised
@@ -339,6 +364,7 @@ static PyObject * batch_get_aerospike_batch_get(as_error *err, AerospikeClient *
 		Py_ssize_t size = PyTuple_Size(py_keys);
 
         py_recs = PyList_New(size);
+        data.py_recs = py_recs;
         as_batch_init(&batch, size);
         // Batch object initialised
         batch_initialised = true;
@@ -364,9 +390,11 @@ static PyObject * batch_get_aerospike_batch_get(as_error *err, AerospikeClient *
 	}
 
 	// Invoke C-client API
+    Py_BEGIN_ALLOW_THREADS
     aerospike_batch_get(self->as, err, batch_policy_p,
         &batch, (aerospike_batch_read_callback) batch_get_cb,
-        py_recs);
+        &data);
+    Py_END_ALLOW_THREADS
     
 CLEANUP:
     if (batch_initialised == true){
@@ -425,7 +453,7 @@ PyObject * AerospikeClient_Get_Many_Invoke(
 	}
 
     has_batch_index = aerospike_has_batch_index(self->as);
-    if (has_batch_index) {
+    if (has_batch_index && !(self->as->config.policies.batch.use_batch_direct)) {
         py_recs = batch_get_aerospike_batch_read(&err, self, py_keys, batch_policy_p);
     } else {
         py_recs = batch_get_aerospike_batch_get(&err, self, py_keys, batch_policy_p);

@@ -17,6 +17,7 @@
 #include <Python.h>
 #include <structmember.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 #include <aerospike/aerospike.h>
 #include <aerospike/as_config.h>
@@ -46,6 +47,9 @@ static PyMethodDef AerospikeClient_Type_Methods[] = {
 	{"is_connected",
 		(PyCFunction) AerospikeClient_is_connected, METH_VARARGS | METH_KEYWORDS,
 		"Checks current connection state."},
+	{"shm_key",
+		(PyCFunction) AerospikeClient_shm_key, METH_VARARGS | METH_KEYWORDS,
+		"Get the shm key of the cluster"},
 
 	// ADMIN OPERATIONS
 
@@ -170,6 +174,9 @@ static PyMethodDef AerospikeClient_Type_Methods[] = {
 	{"get_nodes",
 		(PyCFunction) AerospikeClient_GetNodes, METH_VARARGS | METH_KEYWORDS,
 		"Gets information about the nodes of the cluster."},
+	{"has_geo",
+		(PyCFunction)AerospikeClient_HasGeo, METH_VARARGS | METH_KEYWORDS,
+		"Reflect if the server supports geospatial"},
 
 	// UDF OPERATIONS
 
@@ -206,6 +213,9 @@ static PyMethodDef AerospikeClient_Type_Methods[] = {
 	{"index_map_values_create",
 		(PyCFunction)AerospikeClient_Index_Map_Values_Create, METH_VARARGS | METH_KEYWORDS,
 		"Remove a secondary list index"},
+	{"index_geo2dsphere_create",
+		(PyCFunction)AerospikeClient_Index_2dsphere_Create,	METH_VARARGS | METH_KEYWORDS,
+		"Creates a secondary geo2dsphere index"},
 
     // LSTACK OPERATIONS
 
@@ -244,6 +254,7 @@ static PyMethodDef AerospikeClient_Type_Methods[] = {
 	{"get_key_digest",
 		(PyCFunction)AerospikeClient_Get_Key_Digest, METH_VARARGS | METH_KEYWORDS,
 		"Get key digest"},
+
 	{NULL}
 };
 
@@ -309,32 +320,26 @@ static int AerospikeClient_Type_Init(AerospikeClient * self, PyObject * args, Py
 			size_t prefix_len = strlen(prefix);
 
 			char system_path[AS_CONFIG_PATH_MAX_LEN] = {0};
-			memcpy(system_path, prefix, strlen(prefix));
-			memcpy(system_path + prefix_len, "/aerospike/lua", AS_CONFIG_PATH_MAX_LEN - prefix_len);
-			system_path[prefix_len + strlen("/aerospike/lua")] = '\0';
+		memcpy(system_path, "/usr/local/aerospike/lua", 24);
+		system_path[24] = '\0';
 
 			struct stat info;
-
-			if( stat( system_path, &info ) == 0 && (info.st_mode & S_IFDIR) ) {
+		if (stat(system_path, &info) == 0 && (info.st_mode & S_IFDIR) && (access(system_path, R_OK)) == 0) {
 				memcpy(config.lua.system_path, system_path, AS_CONFIG_PATH_MAX_LEN);
 			}
 			else {
-				memcpy(system_path + prefix_len, "/local/aerospike/lua", AS_CONFIG_PATH_MAX_LEN - prefix_len);
-				system_path[prefix_len + strlen("/local/aerospike/lua")] = '\0';
-
-				if( stat( system_path, &info ) == 0 && (info.st_mode & S_IFDIR) ) {
-					memcpy(config.lua.system_path, system_path, AS_CONFIG_PATH_MAX_LEN);
-				}
-				else {
 					config.lua.system_path[0] = '\0';
 				}
 			}
-		}
-	}
 
 	if ( ! lua_user_path ) {
 		memcpy(config.lua.user_path, ".", AS_CONFIG_PATH_MAX_LEN);
+	} else {
+		struct stat info;
+		if (stat(config.lua.user_path, &info ) != 0 || !(info.st_mode & S_IFDIR) || (access(config.lua.user_path, W_OK) != 0)) {
+		    memcpy(config.lua.user_path, ".", AS_CONFIG_PATH_MAX_LEN);
 	}
+    }
 
 	PyObject * py_hosts = PyDict_GetItemString(py_config, "hosts");
 	if ( py_hosts && PyList_Check(py_hosts) ) {
@@ -350,6 +355,9 @@ static int AerospikeClient_Type_Init(AerospikeClient * self, PyObject * args, Py
 				py_addr = PyTuple_GetItem(py_host, 0);
 				if(PyStr_Check(py_addr)) {
 					addr = strdup(PyStr_AsString(py_addr));
+				} else if (PyUnicode_Check(py_addr)) {
+		            PyObject * py_ustr = PyUnicode_AsUTF8String(py_addr);
+		            addr = strdup(PyString_AsString(py_ustr));
 				}
 				py_port = PyTuple_GetItem(py_host,1);
 				if( PyInt_Check(py_port) || PyLong_Check(py_port) ) {
@@ -367,12 +375,17 @@ static int AerospikeClient_Type_Init(AerospikeClient * self, PyObject * args, Py
 					port = (uint16_t)atoi(temp);
 				}
 			}
+            if(addr) {
 			as_config_add_host(&config, addr, port);
+            } else {
+                free(addr);
+                return -1;
 		}
+	}
 	}
 
     PyObject * py_shm = PyDict_GetItemString(py_config, "shm");
-    if(py_shm && PyDict_Check(py_shm) ) {
+    if (py_shm && PyDict_Check(py_shm) ) {
 
         config.use_shm = true;
 
@@ -390,9 +403,40 @@ static int AerospikeClient_Type_Init(AerospikeClient * self, PyObject * args, Py
         if(py_shm_takeover_threshold_sec && PyInt_Check(py_shm_takeover_threshold_sec) ) {
             config.shm_takeover_threshold_sec = PyInt_AsLong( py_shm_takeover_threshold_sec);
         }
+
+        PyObject* py_shm_cluster_key = PyDict_GetItemString(py_shm, "shm_key");
+        if(py_shm_cluster_key && PyInt_Check(py_shm_cluster_key) ) {
+            user_shm_key = true;
+            config.shm_key = PyInt_AsLong(py_shm_cluster_key);
+    }
+    }
+
+    self->is_client_put_serializer = false;
+    self->user_serializer_call_info.callback = NULL;
+    self->user_deserializer_call_info.callback = NULL;
+    PyObject *py_serializer_option = PyDict_GetItemString(py_config, "serialization");
+    if (py_serializer_option && PyTuple_Check(py_serializer_option)) {
+        PyObject *py_serializer = PyTuple_GetItem(py_serializer_option, 0);
+        if (py_serializer && py_serializer != Py_None) {
+            if (!PyCallable_Check(py_serializer)) {
+                return -1;
+            }
+            memset(&self->user_serializer_call_info, 0, sizeof(self->user_serializer_call_info));
+            self->user_serializer_call_info.callback = py_serializer;
+        }
+        PyObject *py_deserializer = PyTuple_GetItem(py_serializer_option, 1);
+        if (py_deserializer && py_deserializer != Py_None) {
+            if (!PyCallable_Check(py_deserializer)) {
+                return -1;
+            }
+            memset(&self->user_deserializer_call_info, 0, sizeof(self->user_deserializer_call_info));
+            self->user_deserializer_call_info.callback = py_deserializer;
+        }
     }
 
 	as_policies_init(&config.policies);
+    //Set default value of use_batch_direct
+    config.policies.batch.use_batch_direct = false;
 
 	PyObject * py_policies = PyDict_GetItemString(py_config, "policies");
 	if ( py_policies && PyDict_Check(py_policies)) {
@@ -432,6 +476,22 @@ static int AerospikeClient_Type_Init(AerospikeClient * self, PyObject * args, Py
 			config.policies.commit_level = PyInt_AsLong(py_commit_level);
 		}
 
+		PyObject * py_max_threads = PyDict_GetItemString(py_policies, "max_threads");
+        if ( py_max_threads && (PyInt_Check(py_max_threads) || PyLong_Check(py_max_threads))) {
+            config.max_threads = PyInt_AsLong(py_max_threads);
+        }
+
+		PyObject * py_thread_pool_size = PyDict_GetItemString(py_policies, "thread_pool_size");
+        if ( py_thread_pool_size && (PyInt_Check(py_thread_pool_size) || PyLong_Check(py_thread_pool_size))) {
+            config.thread_pool_size = PyInt_AsLong(py_thread_pool_size);
+        }
+
+        //Setting for use_batch_direct
+		PyObject * py_use_batch_direct = PyDict_GetItemString(py_policies, "use_batch_direct");
+        if ( py_use_batch_direct && PyBool_Check(py_use_batch_direct)) {
+            config.policies.batch.use_batch_direct = PyInt_AsLong(py_use_batch_direct);
+        }
+
 		/*
 		 * Generation policy is removed from constructor.
 		 */
@@ -450,7 +510,24 @@ static int AerospikeClient_Type_Init(AerospikeClient * self, PyObject * args, Py
 
 static void AerospikeClient_Type_Dealloc(PyObject * self)
 {
-	Py_TYPE(self)->tp_free((PyObject *) self);
+    as_error err;
+    as_error_init(&err);
+
+    if (((AerospikeClient*)self)->as) {
+        if (((AerospikeClient*)self)->as->config.hosts_size) {
+            char * alias_to_search = return_search_string(((AerospikeClient*)self)->as);
+            PyObject *py_persistent_item = NULL;
+
+            py_persistent_item = PyDict_GetItemString(py_global_hosts, alias_to_search); 
+            if (py_persistent_item) {
+                close_aerospike_object(((AerospikeClient*)self)->as, &err, alias_to_search, py_persistent_item);
+                ((AerospikeClient*)self)->as = NULL;
+            }
+            PyMem_Free(alias_to_search);
+            alias_to_search = NULL;
+        }
+    }
+	self->ob_type->tp_free((PyObject *) self);
 }
 
 /*******************************************************************************

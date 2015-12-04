@@ -22,6 +22,7 @@
 #include "client.h"
 #include "key.h"
 #include "query.h"
+#include "geo.h"
 #include "scan.h"
 #include "predicates.h"
 #include "exceptions.h"
@@ -34,6 +35,10 @@
 #include <aerospike/as_operations.h>
 #include "serializer.h"
 
+PyObject *py_global_hosts;
+int counter = 0xA5000000;
+bool user_shm_key = false;
+
 static PyMethodDef Aerospike_Methods[] = {
 
 	//Serializer Operations
@@ -44,14 +49,19 @@ static PyMethodDef Aerospike_Methods[] = {
 	{"set_deserializer",
 		(PyCFunction)AerospikeClient_Set_Deserializer, METH_VARARGS | METH_KEYWORDS,
 		"Sets the deserializer"},
+	{"unset_serializers",
+		(PyCFunction)AerospikeClient_Unset_Serializers, METH_VARARGS | METH_KEYWORDS,
+		"Unsets the serializer and deserializer"},
 	{"client",		(PyCFunction) AerospikeClient_New,	METH_VARARGS | METH_KEYWORDS,
 		"Create a new instance of Client class."},
 	{"set_log_level",	(PyCFunction)Aerospike_Set_Log_Level,       METH_VARARGS | METH_KEYWORDS,
 		"Sets the log level"},
-
 	{"set_log_handler", (PyCFunction)Aerospike_Set_Log_Handler,	    METH_VARARGS | METH_KEYWORDS,
 		"Sets the log handler"},
-
+	{"geodata", (PyCFunction)Aerospike_Set_Geo_Data,	    METH_VARARGS | METH_KEYWORDS,
+		"Creates a GeoJSON object from geospatial data."},
+	{"geojson", (PyCFunction)Aerospike_Set_Geo_Json,	    METH_VARARGS | METH_KEYWORDS,
+		"Creates a GeoJSON object from a raw GeoJSON string."},
 	{NULL}
 };
 
@@ -66,8 +76,9 @@ AerospikeConstants operator_constants[] = {
 };
 
 #define OPERATOR_CONSTANTS_ARR_SIZE (sizeof(operator_constants)/sizeof(AerospikeConstants))
-
 PyMODINIT_FUNC PyInit_aerospike(void) {
+
+    static char version[6] = "1.0.56";
 	// Makes things "thread-safe"
 	PyEval_InitThreads();
 	int i = 0;
@@ -93,7 +104,10 @@ PyMODINIT_FUNC PyInit_aerospike(void) {
 						"Aerospike Python Client");
 	}
 
+    py_global_hosts = PyDict_New();
 	declare_policy_constants(aerospike);
+
+    PyModule_AddStringConstant(aerospike, "__version__", version);
 
 	PyObject * exception = AerospikeException_New();
 	Py_INCREF(exception);
@@ -149,6 +163,10 @@ PyMODINIT_FUNC PyInit_aerospike(void) {
 	PyTypeObject * lmap = AerospikeLMap_Ready();
 	Py_INCREF(lmap);
 	PyModule_AddObject(aerospike, "lmap", (PyObject *) lmap);
+
+	PyTypeObject * geospatial = AerospikeGeospatial_Ready();
+	Py_INCREF(geospatial);
+	PyModule_AddObject(aerospike, "GeoJSON", (PyObject *) geospatial);
 
 	return aerospike;
 }

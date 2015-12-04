@@ -84,8 +84,11 @@ PyObject * AerospikeLList_Add(AerospikeLList * self, PyObject * args, PyObject *
 		goto CLEANUP;
 	}
 
+    Py_BEGIN_ALLOW_THREADS
 	aerospike_llist_add(self->client->as, &err, apply_policy_p, &self->key,
 			&self->llist, val);
+    Py_END_ALLOW_THREADS
+
 	if(err.code != AEROSPIKE_OK) {
 		as_error_update(&err, err.code, NULL);
 	}
@@ -182,8 +185,10 @@ PyObject * AerospikeLList_Add_Many(AerospikeLList * self, PyObject * args, PyObj
 		goto CLEANUP;
 	}
 
+    Py_BEGIN_ALLOW_THREADS
 	aerospike_llist_add_all(self->client->as, &err, apply_policy_p,
 			&self->key, &self->llist, arglist);
+    Py_END_ALLOW_THREADS
 	if(err.code != AEROSPIKE_OK) {
 		as_error_update(&err, err.code, NULL);
 	}
@@ -274,8 +279,10 @@ PyObject * AerospikeLList_Get(AerospikeLList * self, PyObject * args, PyObject *
 		goto CLEANUP;
 	}
 
+    Py_BEGIN_ALLOW_THREADS
 	aerospike_llist_find(self->client->as, &err, apply_policy_p, &self->key,
 			&self->llist, val, &list_p);
+    Py_END_ALLOW_THREADS
 
 	if (err.code != AEROSPIKE_OK) {
 		as_error_update(&err, err.code, NULL);
@@ -283,7 +290,7 @@ PyObject * AerospikeLList_Get(AerospikeLList * self, PyObject * args, PyObject *
 	}
 
 	PyObject * py_list = NULL;
-	list_to_pyobject(&err, list_p, &py_list);
+	list_to_pyobject(self->client, &err, list_p, &py_list);
 
 CLEANUP:
 
@@ -384,8 +391,10 @@ PyObject * AerospikeLList_Filter(AerospikeLList * self, PyObject * args, PyObjec
 		pyobject_to_list(self->client, &err, py_args, &arg_list, &static_pool, SERIALIZER_PYTHON);
 	}
 
+    Py_BEGIN_ALLOW_THREADS
 	aerospike_llist_filter(self->client->as, &err, apply_policy_p, &self->key,
 			&self->llist, filter_name, arg_list, &elements_list);
+    Py_END_ALLOW_THREADS
 
 	if (err.code != AEROSPIKE_OK) {
 		as_error_update(&err, err.code, NULL);
@@ -393,7 +402,7 @@ PyObject * AerospikeLList_Filter(AerospikeLList * self, PyObject * args, PyObjec
 	}
 
 	PyObject* py_list = NULL;
-	list_to_pyobject(&err, elements_list, &py_list);
+	list_to_pyobject(self->client, &err, elements_list, &py_list);
 
 CLEANUP:
 
@@ -474,8 +483,10 @@ PyObject * AerospikeLList_Destroy(AerospikeLList * self, PyObject * args, PyObje
 		goto CLEANUP;
 	}
 
+    Py_BEGIN_ALLOW_THREADS
 	aerospike_llist_destroy(self->client->as, &err, apply_policy_p, &self->key,
 			&self->llist);
+    Py_END_ALLOW_THREADS
 
 CLEANUP:
 
@@ -559,8 +570,10 @@ PyObject * AerospikeLList_Remove(AerospikeLList * self, PyObject * args, PyObjec
 		goto CLEANUP;
 	}
 
+    Py_BEGIN_ALLOW_THREADS
 	aerospike_llist_remove(self->client->as, &err, apply_policy_p, &self->key,
 			&self->llist, val);
+    Py_END_ALLOW_THREADS
 
 CLEANUP:
 
@@ -638,8 +651,10 @@ PyObject * AerospikeLList_Size(AerospikeLList * self, PyObject * args, PyObject 
 		goto CLEANUP;
 	}
 
+    Py_BEGIN_ALLOW_THREADS
 	aerospike_llist_size(self->client->as, &err, apply_policy_p, &self->key,
 			&self->llist, (uint32_t *)&size);
+    Py_END_ALLOW_THREADS
 
 CLEANUP:
 
@@ -726,12 +741,14 @@ PyObject * AerospikeLList_Find_First(AerospikeLList * self, PyObject * args, PyO
 		goto CLEANUP;
 	}
 
+    Py_BEGIN_ALLOW_THREADS
 	aerospike_llist_find_first(self->client->as, &err, apply_policy_p, &self->key, &self->llist, count, &elements_list);
+    Py_END_ALLOW_THREADS
 	if(err.code != AEROSPIKE_OK) {
 		goto CLEANUP;
 	}
 
-	list_to_pyobject(&err, elements_list, &py_elements_list);
+	list_to_pyobject(self->client, &err, elements_list, &py_elements_list);
 
 CLEANUP:
 	if (elements_list) {
@@ -833,15 +850,17 @@ PyObject * AerospikeLList_Find_First_Filter(AerospikeLList * self, PyObject * ar
 		goto CLEANUP;
 	}
 
+    Py_BEGIN_ALLOW_THREADS
 	aerospike_llist_find_first_filter(self->client->as, &err, apply_policy_p, &self->key,
 			&self->llist, count, filter_name, arg_list, &elements_list);
+    Py_END_ALLOW_THREADS
 
 	if (err.code != AEROSPIKE_OK) {
 		goto CLEANUP;
 	}
 
 	PyObject* py_list = NULL;
-	list_to_pyobject(&err, elements_list, &py_list);
+	list_to_pyobject(self->client, &err, elements_list, &py_list);
 
 CLEANUP:
 
@@ -929,12 +948,14 @@ PyObject * AerospikeLList_Find_Last(AerospikeLList * self, PyObject * args, PyOb
 		goto CLEANUP;
 	}
 
+    Py_BEGIN_ALLOW_THREADS
 	aerospike_llist_find_last(self->client->as, &err, apply_policy_p, &self->key, &self->llist, count, &elements_list);
+    Py_END_ALLOW_THREADS
 	if(err.code != AEROSPIKE_OK) {
 		goto CLEANUP;
 	}
 
-	list_to_pyobject(&err, elements_list, &py_elements_list);
+	list_to_pyobject(self->client, &err, elements_list, &py_elements_list);
 
 CLEANUP:
 	if (elements_list) {
@@ -1035,15 +1056,17 @@ PyObject * AerospikeLList_Find_Last_Filter(AerospikeLList * self, PyObject * arg
 		goto CLEANUP;
 	}
 
+    Py_BEGIN_ALLOW_THREADS
 	aerospike_llist_find_last_filter(self->client->as, &err, apply_policy_p, &self->key,
 			&self->llist, count, filter_name, arg_list, &elements_list);
+    Py_END_ALLOW_THREADS
 
 	if (err.code != AEROSPIKE_OK) {
 		goto CLEANUP;
 	}
 
 	PyObject* py_list = NULL;
-	list_to_pyobject(&err, elements_list, &py_list);
+	list_to_pyobject(self->client, &err, elements_list, &py_list);
 
 CLEANUP:
 
@@ -1135,12 +1158,14 @@ PyObject * AerospikeLList_Find_From(AerospikeLList * self, PyObject * args, PyOb
 
 	pyobject_to_val(self->client, &err, py_value, &from_val, &static_pool, SERIALIZER_PYTHON);
 
+    Py_BEGIN_ALLOW_THREADS
 	aerospike_llist_find_from(self->client->as, &err, apply_policy_p, &self->key, &self->llist, from_val, count, &elements_list);
+    Py_END_ALLOW_THREADS
 	if(err.code != AEROSPIKE_OK) {
 		goto CLEANUP;
 	}
 
-	list_to_pyobject(&err, elements_list, &py_elements_list);
+	list_to_pyobject(self->client, &err, elements_list, &py_elements_list);
 
 CLEANUP:
 	if (elements_list) {
@@ -1254,12 +1279,14 @@ PyObject * AerospikeLList_Find_From_Filter(AerospikeLList * self, PyObject * arg
 		goto CLEANUP;
 	}
 
+    Py_BEGIN_ALLOW_THREADS
 	aerospike_llist_find_from_filter(self->client->as, &err, apply_policy_p, &self->key, &self->llist, from_val, count, filter_name, arg_list, &elements_list);
+    Py_END_ALLOW_THREADS
 	if(err.code != AEROSPIKE_OK) {
 		goto CLEANUP;
 	}
 
-	list_to_pyobject(&err, elements_list, &py_elements_list);
+	list_to_pyobject(self->client, &err, elements_list, &py_elements_list);
 
 CLEANUP:
 	if (elements_list) {
@@ -1385,12 +1412,14 @@ PyObject * AerospikeLList_Range_Limit(AerospikeLList * self, PyObject * args, Py
 		goto CLEANUP;
 	}
 
+    Py_BEGIN_ALLOW_THREADS
 	aerospike_llist_range_limit(self->client->as, &err, apply_policy_p, &self->key, &self->llist, from_val, end_val, count, filter_name, arg_list, &elements_list);
+    Py_END_ALLOW_THREADS
 	if(err.code != AEROSPIKE_OK) {
 		goto CLEANUP;
 	}
 
-	list_to_pyobject(&err, elements_list, &py_elements_list);
+	list_to_pyobject(self->client, &err, elements_list, &py_elements_list);
 
 CLEANUP:
 	if (elements_list) {
@@ -1462,7 +1491,9 @@ PyObject * AerospikeLList_Set_Page_Size(AerospikeLList * self, PyObject * args, 
 		goto CLEANUP;
 	}
 
+    Py_BEGIN_ALLOW_THREADS
 	aerospike_llist_set_page_size(self->client->as, &err, apply_policy_p, &self->key, &self->llist, page_size);
+    Py_END_ALLOW_THREADS
 CLEANUP:
 
 	if ( err.code != AEROSPIKE_OK ) {

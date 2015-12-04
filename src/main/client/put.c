@@ -101,7 +101,9 @@ PyObject * AerospikeClient_Put_Invoke(
 	}
 
 	// Invoke operation
+    Py_BEGIN_ALLOW_THREADS
 	aerospike_key_put(self->as, &err, write_policy_p, &key, &rec);
+    Py_END_ALLOW_THREADS
 	if ( err.code != AEROSPIKE_OK ) {
 		as_error_update(&err, err.code, NULL);
 	}
@@ -158,17 +160,26 @@ PyObject * AerospikeClient_Put(AerospikeClient * self, PyObject * args, PyObject
 	PyObject * py_bins = NULL;
 	PyObject * py_meta = NULL;
 	PyObject * py_policy = NULL;
+    PyObject * py_serializer_option = NULL;
 	long serializer_option = SERIALIZER_PYTHON;
 
 	// Python Function Keyword Arguments
 	static char * kwlist[] = {"key", "bins", "meta", "policy", "serializer", NULL};
 
 	// Python Function Argument Parsing
-	if ( PyArg_ParseTupleAndKeywords(args, kwds, "OO|OOl:put", kwlist,
-			&py_key, &py_bins, &py_meta, &py_policy, &serializer_option) == false ) {
+	if ( PyArg_ParseTupleAndKeywords(args, kwds, "OO|OOO:put", kwlist,
+			&py_key, &py_bins, &py_meta, &py_policy, &py_serializer_option) == false ) {
 		return NULL;
 	}
 
+    if(py_serializer_option) {
+        if(PyInt_Check(py_serializer_option) || PyLong_Check(py_serializer_option)) {
+            self->is_client_put_serializer = true;
+            serializer_option = PyLong_AsLong(py_serializer_option);
+        }
+    } else {
+            self->is_client_put_serializer = false;
+    }
 	// Invoke Operation
 	return AerospikeClient_Put_Invoke(self,
 		py_key, py_bins, py_meta, py_policy, serializer_option);

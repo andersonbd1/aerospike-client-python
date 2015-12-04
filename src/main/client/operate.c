@@ -249,25 +249,6 @@ PyObject *  AerospikeClient_Operate_Invoke(
 				        as_error_update(err, AEROSPIKE_ERR_PARAM, "Unsupported string length for increment operation");
                         goto CLEANUP;
                     }
-                    if (*incr_string == '-') {
-                        incr_string = incr_string + 1;
-                        sign = -1;
-                    } else if (*incr_string == '+') {
-                        incr_string = incr_string + 1;
-                        sign = 1;
-                    }
-                    while (*incr_string != '\0') {
-                        if (*incr_string >= 48 && *incr_string <= 57) {
-                            incr_value = (incr_value * 10) + (*incr_string ^ 0x30);
-                        } else {
-				            as_error_update(err, AEROSPIKE_ERR_PARAM, "Unsupported operand type(s) for +: 'int' and 'str'");
-                            goto CLEANUP;
-                        }
-                        incr_string = incr_string + 1;
-                    }
-                    incr_value = incr_value * sign;
-                    py_value = PyInt_FromLong(incr_value);
-                }
 			} else if ((!py_value) && (operation != AS_OPERATOR_READ)) {
 				as_error_update(err, AEROSPIKE_ERR_PARAM, "Value should be given");
 				goto CLEANUP;
@@ -341,13 +322,16 @@ PyObject *  AerospikeClient_Operate_Invoke(
 	// Initialize record
 	as_record_init(rec, 0);
 
+    Py_BEGIN_ALLOW_THREADS
 	aerospike_key_operate(self->as, err, operate_policy_p, key, &ops, &rec);
+    Py_END_ALLOW_THREADS
+
 	if (err->code != AEROSPIKE_OK) {
 		as_error_update(err, err->code, NULL);
 		goto CLEANUP;
 	}
 	if(rec) {
-		record_to_pyobject(err, rec, key, &py_rec);
+		record_to_pyobject(self, err, rec, key, &py_rec);
 	}
 
 CLEANUP:

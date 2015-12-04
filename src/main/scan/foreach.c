@@ -31,6 +31,7 @@
 typedef struct {
 	as_error error;
 	PyObject * callback;
+    AerospikeClient * client;
 } LocalData;
 
 
@@ -57,7 +58,7 @@ static bool each_result(const as_val * val, void * udata)
 	gstate = PyGILState_Ensure();
 
 	// Convert as_val to a Python Object
-	val_to_pyobject(err, val, &py_result);
+	val_to_pyobject(data->client, err, val, &py_result);
 
 	// Build Python Function Arguments
 	py_arglist = PyTuple_New(1);
@@ -73,7 +74,7 @@ static bool each_result(const as_val * val, void * udata)
 	if ( py_return == NULL ) {
 		// an exception was raised, handle it (someday)
 		// for now, we bail from the loop
-		as_error_update(err, AEROSPIKE_ERR_PARAM, "Callback function contains an error");
+		as_error_update(err, AEROSPIKE_ERR_CLIENT, "Callback function contains an error");
 		rval = true;
 	}
 	else if (  PyBool_Check(py_return) ) {
@@ -116,6 +117,7 @@ PyObject * AerospikeScan_Foreach(AerospikeScan * self, PyObject * args, PyObject
 	// Create and initialize callback user-data
 	LocalData data;
 	data.callback = py_callback;
+    data.client = self->client;
 	as_error_init(&data.error);
 
 	// Aerospike Client Arguments
