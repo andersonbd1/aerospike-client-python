@@ -115,9 +115,9 @@ try:
             'i': 123,
             's': 'abc',
             'u': u'안녕하세요',
-            'b': bytearray(['d','e','f']),
-            'l': [123, 'abc', bytearray(['d','e','f']), ['x', 'y', 'z'], {'x': 1, 'y': 2, 'z': 3}],
-            'm': {'i': 123, 's': 'abc', 'u': u'안녕하세요', 'b': bytearray(['d','e','f']), 'l': ['x', 'y', 'z'], 'd': {'x': 1, 'y': 2, 'z': 3}},
+            #'b': bytearray(['d','e','f']),
+            #'l': [123, 'abc', bytearray(['d','e','f']), ['x', 'y', 'z'], {'x': 1, 'y': 2, 'z': 3}],
+            #'m': {'i': 123, 's': 'abc', 'u': u'안녕하세요', 'b': bytearray(['d','e','f']), 'l': ['x', 'y', 'z'], 'd': {'x': 1, 'y': 2, 'z': 3}},
             'l': [123, 'abc', u'안녕하세요', ['x', 'y', 'z'], {'x': 1, 'y': 2, 'z': 3}],
             'm': {'i': 123, 's': 'abc', 'u': u'안녕하세요', 'l': ['x', 'y', 'z'], 'd': {'x': 1, 'y': 2, 'z': 3}}
         }
@@ -142,7 +142,7 @@ try:
 
     client.close()
 
-except Exception, eargs:
+except Exception as eargs:
     print("error: {0}".format(eargs), file=sys.stderr)
     exitCode = 3
 
